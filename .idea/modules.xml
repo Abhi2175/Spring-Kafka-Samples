@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Spring-Kafka-Samples.iml" filepath="$PROJECT_DIR$/.idea/Spring-Kafka-Samples.iml" />
-      <module fileurl="file://$PROJECT_DIR$/library-events-producer/library-events-producer.iml" filepath="$PROJECT_DIR$/library-events-producer/library-events-producer.iml" />
     </modules>
   </component>
 </project>
