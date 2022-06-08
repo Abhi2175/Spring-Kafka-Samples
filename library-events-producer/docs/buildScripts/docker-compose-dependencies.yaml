@@ -1,0 +1,84 @@
+version: '3.5'
+
+services:
+  postgres:
+    image: postgres:11
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Abcd1234
+      PGDATA: /data/postgres
+    volumes:
+      - event-postgres:/data/postgres
+    ports:
+      - "5555:5432"
+    networks:
+      - abhishek-local
+    restart: unless-stopped
+
+  zookeeper:
+    image: 'docker.io/wurstmeister/zookeeper'
+    hostname: "zookeeper"
+    ports:
+      - '2181:2181'
+    networks:
+      - abhishek-local
+
+  kafka1:
+    image: 'docker.io/wurstmeister/kafka'
+    hostname: "kafka1"
+    ports:
+      - '9094:9094'
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_offsets_topic_replication_factor: 3
+      KAFKA_BROKER_ID: 500
+      HOSTNAME_COMMAND: "hostname"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://127.0.0.1:9094
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    networks:
+      - abhishek-local
+    depends_on:
+      - zookeeper
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    ports:
+      - '9000:9000'
+    environment:
+      KAFKA_BROKERCONNECT: "kafka1:9092"
+    networks:
+      - abhishek-local
+    depends_on:
+      - kafka1
+
+  redis:
+    image: 'docker.io/bitnami/redis'
+    hostname: "redis"
+    ports:
+      - '6379:6379'
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+      REDIS_DISABLE_COMMANDS: FLUSHDB,FLUSHALL
+    networks:
+      - abhishek-local
+    depends_on:
+      - zookeeper
+
+  azure_storage_emulator:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    restart: always
+    command: "azurite-blob --loose --blobHost 0.0.0.0"
+    ports:
+      - "10001:10001"
+      - "10000:10000"
+    networks:
+      - abhishek-local
+
+networks:
+  abhishek-local:
+    driver: bridge
+
+volumes:
+  event-postgres:
