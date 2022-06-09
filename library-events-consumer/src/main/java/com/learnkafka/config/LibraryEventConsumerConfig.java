@@ -11,14 +11,15 @@ import org.springframework.kafka.core.ConsumerFactory;
 @EnableKafka
 public class LibraryEventConsumerConfig {
 
-    @Bean
-    ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(
-            ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
-            ConsumerFactory<Object, Object> kafkaConsumerFactory) {
-        ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        configurer.configure(factory,kafkaConsumerFactory);
-        factory.setConcurrency(3);
-        //factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-        return factory;
-    }
+  @Bean
+  ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(
+      ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
+      ConsumerFactory<Object, Object> kafkaConsumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<Object, Object> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    configurer.configure(factory, kafkaConsumerFactory);
+    factory.setConcurrency(3);
+    // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+    return factory;
+  }
 }

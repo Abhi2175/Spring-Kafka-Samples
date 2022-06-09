@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class LibraryEventConsumer {
 
-    @Autowired private LibraryEventsService libraryEventsService;
+  @Autowired private LibraryEventsService libraryEventsService;
 
-    @KafkaListener(topics = "library-events")
-    public void onMessage(ConsumerRecord<Integer,String> consumerRecord) throws JsonProcessingException {
-        log.info("consumerRecord: {}", consumerRecord);
-        libraryEventsService.processLibraryEvent(consumerRecord);
-
-    }
+  @KafkaListener(topics = "library-events")
+  public void onMessage(ConsumerRecord<Integer, String> consumerRecord)
+      throws JsonProcessingException {
+    log.info("consumerRecord: {}", consumerRecord);
+    libraryEventsService.processLibraryEvent(consumerRecord);
+  }
 }
