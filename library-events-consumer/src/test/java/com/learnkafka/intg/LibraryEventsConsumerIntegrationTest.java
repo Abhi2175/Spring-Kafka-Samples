@@ -12,7 +12,6 @@ import com.learnkafka.entity.LibraryEvent;
 import com.learnkafka.entity.LibraryEventType;
 import com.learnkafka.jpa.LibraryEventsRepository;
 import com.learnkafka.service.LibraryEventsService;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
@@ -34,7 +32,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.MessageListenerContainer;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
@@ -49,7 +46,7 @@ import org.springframework.test.context.TestPropertySource;
     properties = {
       "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
       "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-            "retryListener.startup=false"
+      "retryListener.startup=false"
     })
 public class LibraryEventsConsumerIntegrationTest {
 
@@ -75,22 +72,28 @@ public class LibraryEventsConsumerIntegrationTest {
   @Value("${topics.dlt}")
   private String deadLetterTopic;
 
-
   @BeforeEach
   void setUp() {
 
-    var container = endpointRegistry.getListenerContainers()
-            .stream().filter(messageListenerContainer ->
-                    Objects.equals(messageListenerContainer.getGroupId(), "library-events-listener-group"))
-            .collect(Collectors.toList()).get(0);
+    var container =
+        endpointRegistry.getListenerContainers().stream()
+            .filter(
+                messageListenerContainer ->
+                    Objects.equals(
+                        messageListenerContainer.getGroupId(), "library-events-listener-group"))
+            .collect(Collectors.toList())
+            .get(0);
     ContainerTestUtils.waitForAssignment(container, embeddedKafkaBroker.getPartitionsPerTopic());
-//        for (MessageListenerContainer messageListenerContainer : endpointRegistry.getListenerContainers()) {
-//            System.out.println("Group Id : "+ messageListenerContainer.getGroupId());
-//            if(Objects.equals(messageListenerContainer.getGroupId(), "library-events-listener-group")){
-//                System.out.println("Waiting for assignment");
-//                ContainerTestUtils.waitForAssignment(messageListenerContainer, embeddedKafkaBroker.getPartitionsPerTopic());
-//            }
-//        }
+    //        for (MessageListenerContainer messageListenerContainer :
+    // endpointRegistry.getListenerContainers()) {
+    //            System.out.println("Group Id : "+ messageListenerContainer.getGroupId());
+    //            if(Objects.equals(messageListenerContainer.getGroupId(),
+    // "library-events-listener-group")){
+    //                System.out.println("Waiting for assignment");
+    //                ContainerTestUtils.waitForAssignment(messageListenerContainer,
+    // embeddedKafkaBroker.getPartitionsPerTopic());
+    //            }
+    //        }
   }
 
   @AfterEach
@@ -189,12 +192,16 @@ public class LibraryEventsConsumerIntegrationTest {
     verify(libraryEventsConsumerSpy, times(3)).onMessage(isA(ConsumerRecord.class));
     verify(libraryEventsServiceSpy, times(3)).processLibraryEvent(isA(ConsumerRecord.class));
 
-    Map<String, Object> configs = new HashMap<>(KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker));
-    consumer = new DefaultKafkaConsumerFactory<>(configs, new IntegerDeserializer(), new StringDeserializer()).createConsumer();
-    embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer,retryTopic);
+    Map<String, Object> configs =
+        new HashMap<>(KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker));
+    consumer =
+        new DefaultKafkaConsumerFactory<>(
+                configs, new IntegerDeserializer(), new StringDeserializer())
+            .createConsumer();
+    embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer, retryTopic);
 
-    ConsumerRecord<Integer, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, retryTopic);
+    ConsumerRecord<Integer, String> consumerRecord =
+        KafkaTestUtils.getSingleRecord(consumer, retryTopic);
     assertEquals(json, consumerRecord.value());
-
   }
 }
