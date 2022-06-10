@@ -171,8 +171,20 @@ public class LibraryEventsConsumerIntegrationTest {
     CountDownLatch latch = new CountDownLatch(1);
     latch.await(5, TimeUnit.SECONDS);
 
-    verify(libraryEventsConsumerSpy, times(3)).onMessage(isA(ConsumerRecord.class));
-    verify(libraryEventsServiceSpy, times(3)).processLibraryEvent(isA(ConsumerRecord.class));
+    verify(libraryEventsConsumerSpy, times(1)).onMessage(isA(ConsumerRecord.class));
+    verify(libraryEventsServiceSpy, times(1)).processLibraryEvent(isA(ConsumerRecord.class));
+
+    Map<String, Object> configs =
+        new HashMap<>(KafkaTestUtils.consumerProps("group2", "true", embeddedKafkaBroker));
+    consumer =
+        new DefaultKafkaConsumerFactory<>(
+                configs, new IntegerDeserializer(), new StringDeserializer())
+            .createConsumer();
+    embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer, deadLetterTopic);
+
+    ConsumerRecord<Integer, String> consumerRecord =
+        KafkaTestUtils.getSingleRecord(consumer, deadLetterTopic);
+    assertEquals(json, consumerRecord.value());
   }
 
   @Test

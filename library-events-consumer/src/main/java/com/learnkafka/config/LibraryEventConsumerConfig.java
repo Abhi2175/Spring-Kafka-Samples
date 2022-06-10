@@ -38,9 +38,11 @@ public class LibraryEventConsumerConfig {
         new DeadLetterPublishingRecoverer(
             kafkaTemplate,
             (r, e) -> {
+              log.error("Exception in publishingRecoverer : {}", e.getMessage(), e);
               if ((e.getCause() instanceof RecoverableDataAccessException)) {
                 return new TopicPartition(retryTopic, r.partition());
               } else {
+                log.info("In DLT Topic");
                 return new TopicPartition(deadLetterTopic, r.partition());
               }
             });
@@ -55,18 +57,18 @@ public class LibraryEventConsumerConfig {
     var exceptionToRetryList = List.of(RecoverableDataAccessException.class);
 
     var fixedBackOff = new FixedBackOff(1000L, 2);
-    var errorHandler = new DefaultErrorHandler(publishingRecoverer(), fixedBackOff);
+    // var errorHandler = new DefaultErrorHandler(publishingRecoverer(), fixedBackOff);
 
     var expBackOff = new ExponentialBackOffWithMaxRetries(2);
     expBackOff.setInitialInterval(1_000L);
     expBackOff.setMultiplier(2.0);
     expBackOff.setMaxInterval(2_000L);
 
-    // var errorHandler = new DefaultErrorHandler(expBackOff);
+    var errorHandler = new DefaultErrorHandler(publishingRecoverer(), expBackOff);
 
     errorHandler.addNotRetryableExceptions();
     exceptionToIgnoreList.forEach(errorHandler::addNotRetryableExceptions);
-    exceptionToRetryList.forEach(errorHandler::addRetryableExceptions);
+    // exceptionToRetryList.forEach(errorHandler::addRetryableExceptions);
 
     errorHandler.setRetryListeners(
         (((record, ex, deliveryAttempt) -> {
