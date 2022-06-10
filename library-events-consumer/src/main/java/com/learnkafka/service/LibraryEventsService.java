@@ -8,6 +8,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,9 @@ public class LibraryEventsService {
 
     LibraryEvent libraryEvent = objectMapper.readValue(consumerRecord.value(), LibraryEvent.class);
     log.info("LibraryEvent: {}", libraryEvent);
+
+    if ((libraryEvent != null && libraryEvent.getLibraryEventId() == 999))
+      throw new RecoverableDataAccessException("Temporary Network Issue");
 
     switch (libraryEvent.getLibraryEventType()) {
       case NEW:
